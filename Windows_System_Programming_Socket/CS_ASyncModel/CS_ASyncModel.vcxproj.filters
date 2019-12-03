@@ -15,28 +15,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="EchoClient.cpp">
+    <ClCompile Include="EchoSvrSelect.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="EchoServer.cpp">
+    <ClCompile Include="EchoSvrAsyncSelect.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="EchoSvrTimeout.cpp">
+    <ClCompile Include="EchoSvrEventSelect.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="EchoSvrIoctl.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="EchoCliIoctl.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="EchoSvrThread.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="EchoSvrSelect.cpp">
+    <ClCompile Include="EmptySource.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
