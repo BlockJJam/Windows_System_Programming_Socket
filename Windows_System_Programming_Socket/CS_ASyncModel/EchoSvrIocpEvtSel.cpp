@@ -1,10 +1,9 @@
 #include "stdafx.h"
-#include "winsock2.h"
+#include "Winsock2.h"
 #include "Ntsecapi.h"
 #include "set"
 #include "map"
 #include "iostream"
-
 using namespace std;
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -55,7 +54,6 @@ PCTSTR c_pszActions[] =
 						FILE_NOTIFY_CHANGE_SIZE |		\
 						FILE_NOTIFY_CHANGE_LAST_WRITE
 
-
 void PrintDirModEntries(PCSTR pszDir, PBYTE pIter)
 {
 	cout << " => MonDir " << pszDir;
@@ -73,6 +71,7 @@ void PrintDirModEntries(PCSTR pszDir, PBYTE pIter)
 	}
 }
 
+
 #ifndef STATUS_LOCAL_DISCONNECT
 #	define STATUS_LOCAL_DISCONNECT	((NTSTATUS)0xC000013BL)
 #endif
@@ -80,24 +79,24 @@ void PrintDirModEntries(PCSTR pszDir, PBYTE pIter)
 #	define STATUS_REMOTE_DISCONNECT	((NTSTATUS)0xC000013CL)
 #endif
 
-#define IOKEY_NEW_SOCK 1
-#define IOKEY_RECV_SOCK 2
-#define IOKEY_MON_DIR	3
 
-#define TM_MSG_TEST	100
-#define TM_SOCK_CLOSED 101
-#define TM_DIR_CLOSED 102
-#define TM_DIR_CONFIG 103
+#define IOKEY_NEW_SOCK		1
+#define IOKEY_RECV_SOCK		2
+#define IOKEY_MON_DIR		3
 
-#define BUFF_SIZE 4096
+#define TM_MSG_TEST			100
+#define TM_SOCK_CLOSED		101
+#define TM_DIR_CLOSED		102
+#define TM_DIR_CONFIG		103
+
+#define BUFF_SIZE	4096
 
 typedef std::string String;
-
 struct DIR_ITEM : OVERLAPPED
 {
-	HANDLE _dir;
-	String _path;
-	BYTE  _buff[BUFF_SIZE];
+	HANDLE	_dir;
+	String	_path;
+	BYTE	_buff[BUFF_SIZE];
 
 	DIR_ITEM(HANDLE hDir, PCSTR path)
 	{
@@ -113,7 +112,7 @@ struct DIR_ITEM : OVERLAPPED
 	}
 };
 typedef DIR_ITEM* PDIR_ITEM;
-typedef std::map<std::string, PDIR_ITEM>DIR_MAP;
+typedef std::map<std::string, PDIR_ITEM> DIR_MAP;
 
 struct SOCK_ITEM : OVERLAPPED
 {
@@ -132,34 +131,40 @@ struct SOCK_ITEM : OVERLAPPED
 	}
 };
 typedef SOCK_ITEM* PSOCK_ITEM;
+
 typedef std::set<LPOVERLAPPED> OV_SET;
+
+
 
 class MainMngr
 {
 	static DWORD WINAPI IocpWorkProc(PVOID pParam);
 	static DWORD WINAPI MainMngrProc(PVOID pParam);
 
-	DWORD m_dwThrId;
-	HANDLE m_hMainThr;
-	DIR_MAP m_dirMap;
-	OV_SET m_ovSet;
-	HANDLE m_hIocp;
-	PHANDLE m_parWorkers;
-	INT m_nWorkerCnt;
-	SOCKET m_soListen;
-	WSAEVENT m_evListen;
-	HANDLE m_evMonReg;
-	HKEY m_regMonKey;
+	DWORD	 m_dwThrId;
+	HANDLE	 m_hMainThr;
+	DIR_MAP	 m_dirMap;
 
-#define MAIN_WAIT_CNT 3
-	HANDLE m_hevExit;
+	OV_SET	 m_ovSet;
+	HANDLE	 m_hIocp;
+	PHANDLE	 m_parWorkers;
+	INT		 m_nWorkerCnt;
+
+	SOCKET	 m_soListen;
+	WSAEVENT m_evListen;
+
+	HANDLE	 m_evMonReg;
+	HKEY	 m_regMonKey;
+
+#define	MAIN_WAIT_CNT	3
+	HANDLE	 m_hevExit;
 
 protected:
 	void Init();
 	void Uninit();
 	void Run();
 
-	bool Handler_Message();
+	bool Handler_Measage();
 	bool Handler_Accept();
 	bool Handler_Registry(bool bNoti = true);
 
@@ -192,6 +197,8 @@ public:
 		PostThreadMessage(m_dwThrId, TM_DIR_CONFIG, (WPARAM)opt, (LPARAM)pszPath);
 	}
 };
+
+
 
 DWORD WINAPI MainMngr::IocpWorkProc(PVOID pParam)
 {
@@ -391,8 +398,8 @@ void MainMngr::Run()
 	HANDLE arSynObjs[MAIN_WAIT_CNT] = { m_hevExit, m_evListen, m_evMonReg };
 
 	Handler_Registry(false);
-	bool bContinue = true;
 
+	bool bContinue = true;
 	while (bContinue)
 	{
 		DWORD dwWaitRet = MsgWaitForMultipleObjectsEx
@@ -401,7 +408,7 @@ void MainMngr::Run()
 		);
 		if (dwWaitRet == WAIT_FAILED)
 		{
-			cout << "MWFMO failed, code : " << GetLastError() << endl;
+			cout << "MWFMO failed: " << GetLastError() << endl;
 			break;
 		}
 
@@ -410,15 +417,16 @@ void MainMngr::Run()
 
 		switch (dwWaitRet)
 		{
-		case MAIN_WAIT_CNT: bContinue = Handler_Message(); break;
+		case MAIN_WAIT_CNT: bContinue = Handler_Measage(); break;
 		case WAIT_OBJECT_0 + 1: bContinue = Handler_Accept(); break;
 		case WAIT_OBJECT_0 + 2: bContinue = Handler_Registry(); break;
 		}
-		CloseHandle(m_hIocp);
-		WaitForMultipleObjects(m_nWorkerCnt, m_parWorkers, TRUE, INFINITE);
-		m_hIocp = NULL;
 	}
+	CloseHandle(m_hIocp);
+	WaitForMultipleObjects(m_nWorkerCnt, m_parWorkers, TRUE, INFINITE);
+	m_hIocp = NULL;
 }
+
 
 void MainMngr::Start()
 {
@@ -457,6 +465,7 @@ void MainMngr::Stop()
 	Uninit();
 }
 
+
 bool MainMngr::Handler_Accept()
 {
 	WSANETWORKEVENTS ne;
@@ -484,7 +493,7 @@ bool MainMngr::Handler_Accept()
 	return true;
 }
 
-bool MainMngr::Handler_Message()
+bool MainMngr::Handler_Measage()
 {
 	MSG msg;
 	PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
@@ -591,14 +600,17 @@ bool MainMngr::Handler_Registry(bool bNoti)
 	return true;
 }
 
+
+
+
+
 void _tmain()
 {
-	WSADATA wsd;
+	WSADATA	wsd;
 	int nErrCode = WSAStartup(MAKEWORD(2, 2), &wsd);
-
 	if (nErrCode)
 	{
-		cout << "WSAStartup failed with error: " << nErrCode << endl;
+		cout << "WSAStartup failed with error : " << nErrCode << endl;
 		return;
 	}
 
@@ -606,7 +618,7 @@ void _tmain()
 	try
 	{
 		mngr.Start();
-		mngr.ConfigMonDir(false, (PSTR)"C:\\temp");
+		mngr.ConfigMonDir(false, (PSTR)"c:\\temp");
 
 		char szIn[512];
 		while (true)
@@ -615,7 +627,7 @@ void _tmain()
 			if (stricmp(szIn, "quit") == 0)
 				break;
 
-			if (strnicmp(szIn, "dir: ", 4) == 0)
+			if (strnicmp(szIn, "dir:", 4) == 0)
 			{
 				bool bRemove = false;
 				PSTR pit = szIn + 4;
@@ -636,7 +648,7 @@ void _tmain()
 	}
 	catch (HRESULT hr)
 	{
-		printf("....... Error in main, code 0x%08x \n", hr);
+		printf("......Error in Main, code=0x%08X\n", hr);
 	}
 	mngr.Stop();
 
