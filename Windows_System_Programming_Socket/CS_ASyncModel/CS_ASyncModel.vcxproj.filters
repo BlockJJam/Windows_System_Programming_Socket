@@ -93,6 +93,18 @@
     <ClCompile Include="FTSvrIocp.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="FTClientFile.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FTClientFileBuff.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSvrThrFileBuff.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FTClientPacket.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
